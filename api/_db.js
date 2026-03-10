@@ -1,24 +1,25 @@
-const { MongoClient } = require('mongodb');
+const { MongoClient } = require("mongodb");
 
 let cachedClient = null;
 let cachedDb = null;
 
 async function connectToDatabase() {
+
   if (cachedClient && cachedDb) {
     return { client: cachedClient, db: cachedDb };
   }
 
   const uri = process.env.MONGODB_URI;
+
   if (!uri) {
-    throw new Error('Please define MONGODB_URI environment variable');
+    throw new Error("MONGODB_URI environment variable is not defined");
   }
 
-  const client = await MongoClient.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(uri);
 
-  const db = client.db(process.env.MONGODB_DB || 'intern_tracker');
+  await client.connect();
+
+  const db = client.db(process.env.MONGODB_DB || "intern_tracker");
 
   cachedClient = client;
   cachedDb = db;

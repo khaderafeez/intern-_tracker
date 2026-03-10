@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Daily progress tracker for interns with secure authentication",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "vercel dev --debug",
     "build": "echo 'No build step required'"
   },
   "dependencies": {

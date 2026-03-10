@@ -1,11 +1,20 @@
 {
   "version": 2,
+  "buildCommand": "echo 'No build required'",
+  "devCommand": "echo 'Using Vercel dev server'",
+  "public": "public",
   "functions": {
     "api/**/*.js": {
       "memory": 1024,
       "maxDuration": 10
     }
   },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",

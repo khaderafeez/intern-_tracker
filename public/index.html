@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intern Progress Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .login-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: #d32f2f;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #ffebee;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .success {
+            color: #388e3c;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #e8f5e9;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .user-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .user-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .logout-btn:hover {
+            background: #c62828;
+        }
+
+        .entries-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .entry-item {
+            background: #f5f5f5;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .entry-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .entry-item p {
+            color: #666;
+            font-size: 13px;
+            margin: 3px 0;
+        }
+
+        .admin-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
+
+        .admin-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Intern Tracker</h1>
+
+        <!-- Login Forms -->
+        <div id="loginForms">
+            <div class="login-tabs">
+                <button class="tab-btn active" onclick="switchTab('admin')">Admin</button>
+                <button class="tab-btn" onclick="switchTab('intern')">Intern</button>
+            </div>
+
+            <div id="error" class="error"></div>
+            <div id="success" class="success"></div>
+
+            <!-- Admin Login -->
+            <div id="adminForm" class="form-section">
+                <div class="form-group">
+                    <label for="adminPassword">Admin Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password">
+                </div>
+                <button class="btn" onclick="loginAdmin()">Login as Admin</button>
+            </div>
+
+            <!-- Intern Login -->
+            <div id="internForm" class="form-section hidden">
+                <div class="form-group">
+                    <label for="internEmail">Email</label>
+                    <input type="email" id="internEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="internPin">PIN (4 digits)</label>
+                    <input type="text" id="internPin" placeholder="0000" maxlength="4">
+                </div>
+                <button class="btn" onclick="loginIntern()">Login as Intern</button>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminDashboard" class="dashboard">
+            <div class="user-info">
+                <p><strong>Role:</strong> Administrator</p>
+                <p><strong>Logged in since:</strong> <span id="loginTime"></span></p>
+            </div>
+
+            <div class="admin-section">
+                <h3>Change Admin Password</h3>
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" placeholder="Min 8 chars, letters & numbers">
+                </div>
+                <button class="btn" onclick="changePassword()">Update Password</button>
+            </div>
+
+            <div class="admin-section">
+                <h3>Users</h3>
+                <div id="usersList" class="entries-list"></div>
+                <button class="btn" onclick="loadUsers()">Refresh Users</button>
+            </div>
+
+            <div class="admin-section">
+                <h3>Recent Entries</h3>
+                <div id="entriesList" class="entries-list"></div>
+                <button class="btn" onclick="loadEntries()">Refresh Entries</button>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Intern Dashboard -->
+        <div id="internDashboard" class="dashboard">
+            <div class="user-info">
+                <p><strong>Name:</strong> <span id="internName"></span></p>
+                <p><strong>Department:</strong> <span id="internDept"></span></p>
+                <p><strong>Role:</strong> Intern</p>
+            </div>
+
+            <h3 style="color: #333; margin-top: 20px; margin-bottom: 15px;">Today's Entry</h3>
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date">
+            </div>
+            <div class="form-group">
+                <label for="project">Project</label>
+                <input type="text" id="project" placeholder="Project name">
+            </div>
+            <div class="form-group">
+                <label for="hoursWorked">Hours Worked</label>
+                <input type="number" id="hoursWorked" placeholder="0" min="0" max="24">
+            </div>
+            <div class="form-group">
+                <label for="tasksCompleted">Tasks Completed</label>
+                <textarea id="tasksCompleted" placeholder="List tasks completed..." style="height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="challenges">Challenges</label>
+                <textarea id="challenges" placeholder="Any challenges faced..." style="height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="planForTomorrow">Plan for Tomorrow</label>
+                <textarea id="planForTomorrow" placeholder="What you plan to do tomorrow..." style="height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"></textarea>
+            </div>
+            <button class="btn" onclick="saveEntry()">Save Entry</button>
+
+            <div class="admin-section">
+                <h3>Your Entries</h3>
+                <div id="myEntriesList" class="entries-list"></div>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentRole = null;
+        let currentUserId = null;
+        let currentUserData = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.form-section').forEach(form => form.classList.add('hidden'));
+            
+            if (tab === 'admin') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('adminForm').classList.remove('hidden');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('internForm').classList.remove('hidden');
+            }
+            clearMessages();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => successDiv.style.display = 'none', 5000);
+        }
+
+        function clearMessages() {
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+        }
+
+        async function loginAdmin() {
+            const password = document.getElementById('adminPassword').value.trim();
+            if (!password) {
+                showError('Please enter a password');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth.js`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'admin', password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentRole = 'admin';
+                    document.getElementById('loginForms').style.display = 'none';
+                    document.getElementById('adminDashboard').classList.add('active');
+                    document.getElementById('loginTime').textContent = new Date().toLocaleString();
+                    loadUsers();
+                    loadEntries();
+                } else {
+                    showError(data.error || 'Login failed');
+                }
+            } catch (error) {
+                showError('Connection error: ' + error.message);
+            }
+        }
+
+        async function loginIntern() {
+            const email = document.getElementById('internEmail').value.trim();
+            const pin = document.getElementById('internPin').value.trim();
+
+            if (!email || !pin) {
+                showError('Please enter email and PIN');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth.js`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'intern', email, pin })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentRole = 'intern';
+                    currentUserId = data.userId;
+                    currentUserData = data;
+                    document.getElementById('loginForms').style.display = 'none';
+                    document.getElementById('internDashboard').classList.add('active');
+                    document.getElementById('internName').textContent = data.name;
+                    document.getElementById('internDept').textContent = data.department;
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('date').value = today;
+                    
+                    loadMyEntries();
+                } else {
+                    showError(data.error || 'Login failed');
+                }
+            } catch (error) {
+                showError('Connection error: ' + error.message);
+            }
+        }
+
+        async function changePassword() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+
+            if (!current || !newPass) {
+                showError('Please enter both passwords');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/change-password.js`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword: current, newPassword: newPass })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess(data.message);
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                } else {
+                    showError(data.error || 'Password change failed');
+                }
+            } catch (error) {
+                showError('Connection error: ' + error.message);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/load-users.js`);
+                const users = await response.json();
+
+                const usersList = document.getElementById('usersList');
+                usersList.innerHTML = '';
+
+                users.forEach(user => {
+                    usersList.innerHTML += `
+                        <div class="entry-item">
+                            <h4>${user.name}</h4>
+                            <p><strong>Email:</strong> ${user.email}</p>
+                            <p><strong>Department:</strong> ${user.department}</p>
+                            <p><strong>PIN:</strong> ${user.pin}</p>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                showError('Failed to load users: ' + error.message);
+            }
+        }
+
+        async function loadEntries() {
+            try {
+                const response = await fetch(`${API_BASE}/load-entries.js`);
+                const entries = await response.json();
+
+                const entriesList = document.getElementById('entriesList');
+                entriesList.innerHTML = '';
+
+                entries.forEach(entry => {
+                    entriesList.innerHTML += `
+                        <div class="entry-item">
+                            <h4>${entry.name} - ${entry.date}</h4>
+                            <p><strong>Project:</strong> ${entry.project}</p>
+                            <p><strong>Hours:</strong> ${entry.hoursWorked}</p>
+                            <p><strong>Tasks:</strong> ${entry.tasksCompleted.substring(0, 50)}...</p>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                showError('Failed to load entries: ' + error.message);
+            }
+        }
+
+        async function loadMyEntries() {
+            try {
+                const response = await fetch(`${API_BASE}/load-entries.js`);
+                const allEntries = await response.json();
+                const myEntries = allEntries.filter(e => e.userId === currentUserId);
+
+                const myEntriesList = document.getElementById('myEntriesList');
+                myEntriesList.innerHTML = '';
+
+                if (myEntries.length === 0) {
+                    myEntriesList.innerHTML = '<p style="color: #999; text-align: center;">No entries yet</p>';
+                } else {
+                    myEntries.forEach(entry => {
+                        myEntriesList.innerHTML += `
+                            <div class="entry-item">
+                                <h4>${entry.date}</h4>
+                                <p><strong>Project:</strong> ${entry.project}</p>
+                                <p><strong>Hours:</strong> ${entry.hoursWorked}</p>
+                                <p><strong>Tasks:</strong> ${entry.tasksCompleted}</p>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load entries:', error);
+            }
+        }
+
+        async function saveEntry() {
+            const date = document.getElementById('date').value;
+            const project = document.getElementById('project').value;
+            const hoursWorked = document.getElementById('hoursWorked').value;
+            const tasksCompleted = document.getElementById('tasksCompleted').value;
+            const challenges = document.getElementById('challenges').value;
+            const planForTomorrow = document.getElementById('planForTomorrow').value;
+
+            if (!date || !project) {
+                showError('Please fill in date and project');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/load-entries.js`);
+                const existingEntries = await response.json();
+
+                const newEntry = {
+                    id: 'entry_' + Date.now(),
+                    userId: currentUserId,
+                    name: currentUserData.name,
+                    department: currentUserData.department,
+                    date,
+                    project,
+                    hoursWorked,
+                    tasksCompleted,
+                    challenges,
+                    planForTomorrow,
+                    timestamp: new Date().toISOString()
+                };
+
+                const entriesToSave = [...existingEntries, newEntry];
+
+                const saveResponse = await fetch(`${API_BASE}/save-entries.js`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entries: entriesToSave })
+                });
+
+                const saveData = await saveResponse.json();
+
+                if (saveData.success) {
+                    showSuccess('Entry saved successfully!');
+                    document.getElementById('project').value = '';
+                    document.getElementById('hoursWorked').value = '';
+                    document.getElementById('tasksCompleted').value = '';
+                    document.getElementById('challenges').value = '';
+                    document.getElementById('planForTomorrow').value = '';
+                    loadMyEntries();
+                } else {
+                    showError(saveData.error || 'Failed to save entry');
+                }
+            } catch (error) {
+                showError('Connection error: ' + error.message);
+            }
+        }
+
+        function logout() {
+            currentRole = null;
+            currentUserId = null;
+            currentUserData = null;
+            document.getElementById('loginForms').style.display = 'block';
+            document.getElementById('adminDashboard').classList.remove('active');
+            document.getElementById('internDashboard').classList.remove('active');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('internEmail').value = '';
+            document.getElementById('internPin').value = '';
+            clearMessages();
+            switchTab('admin');
+        }
+
+        // Set today's date on load
+        window.addEventListener('load', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+        });
+    </script>
+</body>
+</html>

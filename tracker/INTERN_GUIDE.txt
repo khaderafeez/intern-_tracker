@@ -1,0 +1,96 @@
+═══════════════════════════════════════════════════════════════
+         INTERN DAILY PROGRESS TRACKER - QUICK START
+═══════════════════════════════════════════════════════════════
+
+📋 YOUR LOGIN CREDENTIALS
+
+Name: _______________________________________________
+
+PIN:  __ __ __ __   (4 digits)
+
+Email: _______________________________________________
+
+Department: __________________________________________
+
+═══════════════════════════════════════════════════════════════
+                    HOW TO LOGIN & SUBMIT
+═══════════════════════════════════════════════════════════════
+
+STEP 1: Open the tracker website
+        (Get the URL from your admin)
+
+STEP 2: Enter your full name as registered
+        Example: "Ahmed" or "Haafizah Khathija"
+
+STEP 3: Enter your 4-digit PIN
+
+STEP 4: Click "Login"
+
+STEP 5: Fill the daily progress form:
+        • Hours worked today
+        • Tasks completed
+        • Challenges faced (optional)
+        • Tomorrow's plan (optional)
+        • Progress level (High/Medium/Low)
+        • Mood/Energy level
+
+STEP 6: Click "Submit Today's Progress"
+
+═══════════════════════════════════════════════════════════════
+                        IMPORTANT RULES
+═══════════════════════════════════════════════════════════════
+
+✓ You can submit ONLY ONE entry per day
+✓ Date is automatically set to today
+✓ After submission, you'll see a green "Success" banner
+✓ You can view your entire progress history
+✓ Come back tomorrow to submit another entry
+
+═══════════════════════════════════════════════════════════════
+                        WHAT TO TRACK
+═══════════════════════════════════════════════════════════════
+
+TASKS COMPLETED:
+Describe what you accomplished today in detail.
+Example: "Completed user authentication module, tested 
+login functionality, fixed 3 bugs in the API"
+
+CHALLENGES:
+Any problems or blockers you faced.
+Example: "Database connection timing out, need access 
+to production server"
+
+TOMORROW'S PLAN:
+What you'll work on next.
+Example: "Implement password reset feature, start working 
+on email notifications"
+
+PROGRESS LEVEL:
+• High - Exceeded goals, on track
+• Medium - Made good progress, mostly on track
+• Low - Behind schedule, need support
+
+═══════════════════════════════════════════════════════════════
+                        NEED HELP?
+═══════════════════════════════════════════════════════════════
+
+❓ Forgot your PIN?
+   Contact your admin to reset it
+
+❓ Can't login?
+   Check your name spelling matches registration
+
+❓ Already submitted today?
+   You'll see your entry displayed, come back tomorrow
+
+❓ Need to change submission?
+   Contact admin (cannot edit after submission)
+
+❓ Technical issues?
+   Contact your admin or IT support
+
+═══════════════════════════════════════════════════════════════
+
+📧 Send feedback or questions to your internship coordinator
+
+═══════════════════════════════════════════════════════════════

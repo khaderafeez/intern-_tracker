@@ -1,0 +1,987 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intern Daily Progress Tracker</title>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; color: #333; min-height: 100vh; }
+
+    /* Header */
+    header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: #fff; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .header-left .logo { font-size: 1.8rem; }
+    .header-left h1 { font-size: 1.3rem; font-weight: 600; }
+    .header-left p  { font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .user-badge { background: rgba(255,255,255,0.2); border-radius: 8px; padding: 7px 14px; font-size: 0.85rem; font-weight: 600; }
+
+    /* Login */
+    .login-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #e8f0fe, #f0f4f8); padding: 20px; }
+    .login-box { background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(26,115,232,0.13); padding: 40px 36px; width: 100%; max-width: 420px; }
+    .login-logo { text-align: center; font-size: 3rem; margin-bottom: 8px; }
+    .login-box h2 { text-align: center; font-size: 1.3rem; color: #1a73e8; margin-bottom: 4px; }
+    .login-subtitle { text-align: center; font-size: 0.83rem; color: #888; margin-bottom: 26px; }
+    .login-tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 24px; }
+    .login-tab { flex: 1; background: none; border: none; padding: 10px; font-size: 0.88rem; font-weight: 600; color: #999; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color .2s, border-color .2s; }
+    .login-tab.active { color: #1a73e8; border-bottom-color: #1a73e8; }
+    .login-panel { display: none; }
+    .login-panel.active { display: block; }
+
+    /* Container */
+    .container { max-width: 1150px; margin: 28px auto; padding: 0 20px; }
+
+    /* Card */
+    .card { background: #fff; border-radius: 12px; padding: 26px 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 26px; }
+    .card-title { font-size: 1rem; font-weight: 700; color: #1a73e8; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+    /* Forms */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full-width { grid-column: span 2; }
+    label { font-size: 0.79rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.4px; }
+    input, select, textarea { border: 1.5px solid #dce1e9; border-radius: 8px; padding: 10px 13px; font-size: 0.93rem; color: #333; font-family: inherit; resize: vertical; transition: border-color .2s, box-shadow .2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.1); }
+    input[readonly] { background: #f8f9fb; color: #666; cursor: not-allowed; }
+    textarea { min-height: 80px; }
+    .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .pin-input { letter-spacing: 6px; font-size: 1.1rem; text-align: center; }
+
+    /* Buttons */
+    .btn { padding: 10px 22px; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background .2s, transform .1s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary   { background: #1a73e8; color: #fff; }
+    .btn-primary:hover { background: #1558b0; }
+    .btn-danger    { background: #e53935; color: #fff; }
+    .btn-danger:hover { background: #b71c1c; }
+    .btn-success   { background: #2e7d32; color: #fff; }
+    .btn-success:hover { background: #1b5e20; }
+    .btn-secondary { background: #f0f4f8; color: #555; border: 1.5px solid #dce1e9; }
+    .btn-secondary:hover { background: #dce1e9; }
+    .btn-block { width: 100%; justify-content: center; margin-bottom: 10px; padding: 12px; font-size: 0.95rem; }
+    .btn-sm { padding: 7px 14px; font-size: 0.8rem; }
+
+    /* Stats */
+    .stats-bar { display: flex; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+    .stat-chip { background: #fff; border-radius: 10px; padding: 14px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); display: flex; flex-direction: column; align-items: center; min-width: 120px; flex: 1; }
+    .stat-chip .value { font-size: 1.65rem; font-weight: 700; color: #1a73e8; }
+    .stat-chip .label { font-size: 0.74rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; text-align: center; }
+
+    /* Table */
+    .table-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .search-box { padding: 9px 13px; border: 1.5px solid #dce1e9; border-radius: 8px; font-size: .88rem; width: 210px; }
+    .search-box:focus { outline: none; border-color: #1a73e8; }
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #e8ecf1; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    thead tr { background: #1a73e8; color: #fff; }
+    thead th { padding: 11px 13px; text-align: left; font-weight: 600; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid #eef0f4; transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f5f8ff; }
+    tbody td { padding: 10px 13px; vertical-align: middle; }
+    .td-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; display: block; }
+    .no-data { text-align: center; color: #aaa; padding: 36px 0; font-size: .9rem; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .73rem; font-weight: 700; }
+    .badge-high   { background: #e8f5e9; color: #2e7d32; }
+    .badge-medium { background: #fff8e1; color: #f57f17; }
+    .badge-low    { background: #fce4ec; color: #c62828; }
+
+    /* Action icon buttons */
+    .action-btn { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 4px 5px; border-radius: 5px; transition: background .15s; }
+    .action-btn:hover { background: #f0f4f8; }
+
+    /* Submitted banner */
+    .submitted-banner { background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border: 1.5px solid #a5d6a7; border-radius: 12px; padding: 24px 28px; text-align: center; }
+    .submitted-banner .check-icon { font-size: 3rem; margin-bottom: 10px; }
+    .submitted-banner h3 { color: #2e7d32; font-size: 1.1rem; margin-bottom: 6px; }
+    .submitted-banner p  { color: #555; font-size: .88rem; }
+    .submitted-entry { margin-top: 20px; text-align: left; background: #fff; border-radius: 10px; padding: 18px 22px; border: 1px solid #c8e6c9; }
+    .entry-row { display: flex; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f0f0f0; font-size: .88rem; }
+    .entry-row:last-child { border-bottom: none; }
+    .entry-row .key { font-weight: 700; color: #555; min-width: 160px; flex-shrink: 0; }
+
+    /* User chips */
+    .user-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; background: #f0f4f8; border-radius: 8px; padding: 8px 14px; font-size: .85rem; }
+    .user-chip .uname { font-weight: 600; }
+    .user-chip .udept { color: #999; font-size: .78rem; }
+    .sep { border: none; border-top: 1px solid #e8ecf1; margin: 22px 0; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #323232; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: .88rem; box-shadow: 0 4px 16px rgba(0,0,0,0.25); opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s; pointer-events: none; z-index: 9999; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-left: 4px solid #4caf50; }
+    .toast.error   { border-left: 4px solid #f44336; }
+
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full-width { grid-column: span 1; }
+      header { padding: 14px 16px; }
+      .container { padding: 0 12px; }
+      .card { padding: 18px 14px; }
+      .login-box { padding: 28px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SCREEN: LOGIN -->
+<div id="screen-login">
+  <div class="login-wrapper">
+    <div class="login-box">
+      <div class="login-logo">&#128203;</div>
+      <h2>Intern Progress Tracker</h2>
+      <p class="login-subtitle">Log your daily work &amp; track your growth</p>
+      <div class="login-tabs">
+        <button class="login-tab active" onclick="switchTab('login')">Login</button>
+        <button class="login-tab" onclick="switchTab('admin')">Admin</button>
+      </div>
+      <!-- LOGIN -->
+      <div class="login-panel active" id="panel-login">
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Email Address</label>
+          <input type="email" id="login-email" placeholder="Enter your email" autocomplete="email" />
+        </div>
+        <div class="form-group" style="margin-bottom:22px">
+          <label>PIN (4 digits)</label>
+          <input type="password" id="login-pin" class="pin-input" placeholder="&#9679;&#9679;&#9679;&#9679;" maxlength="4" inputmode="numeric" />
+        </div>
+        <button class="btn btn-primary btn-block" onclick="handleLogin()">&#128272; Login</button>
+        <p style="text-align:center;font-size:.79rem;color:#bbb;margin-top:8px">New intern? Contact your admin to get login credentials.</p>
+      </div>
+      <!-- ADMIN -->
+      <div class="login-panel" id="panel-admin">
+        <div style="text-align:center;margin-bottom:18px">
+          <span style="font-size:2.2rem">&#128737;</span>
+          <p style="font-size:.82rem;color:#888;margin-top:4px">Admin access only</p>
+        </div>
+        <div class="form-group" style="margin-bottom:22px">
+          <label>Admin Password</label>
+          <input type="password" id="admin-pass" placeholder="Enter admin password" />
+        </div>
+        <button class="btn btn-primary btn-block" onclick="handleAdminLogin()">&#128272; Admin Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: INTERN -->
+<div id="screen-intern" style="display:none">
+  <header>
+    <div class="header-left">
+      <div class="logo">&#128203;</div>
+      <div>
+        <h1>Daily Progress Tracker</h1>
+        <p id="intern-header-sub">Track your daily work and achievements</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="user-badge" id="intern-user-badge">Intern</span>
+      <button class="btn btn-secondary btn-sm" onclick="handleLogout()">Logout</button>
+    </div>
+  </header>
+  <div class="container">
+    <div class="card">
+      <div class="card-title">&#128197; <span id="today-card-title">Today's Progress</span></div>
+      <div id="today-content"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">&#128202; My Progress History</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Date</th><th>Project</th><th>Hours</th><th>Tasks Completed</th>
+              <th>Challenges</th><th>Tomorrow Plan</th>
+            </tr>
+          </thead>
+          <tbody id="intern-history-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: ADMIN -->
+<div id="screen-admin" style="display:none">
+  <header>
+    <div class="header-left">
+      <div class="logo">&#128737;</div>
+      <div>
+        <h1>Admin Dashboard</h1>
+        <p>Manage all intern progress entries</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="user-badge">Admin</span>
+      <button class="btn btn-secondary btn-sm" onclick="handleLogout()">Logout</button>
+    </div>
+  </header>
+  <div class="container">
+    <div class="stats-bar">
+      <div class="stat-chip"><span class="value" id="stat-total">0</span><span class="label">Total Entries</span></div>
+      <div class="stat-chip"><span class="value" id="stat-hours">0</span><span class="label">Total Hours</span></div>
+      <div class="stat-chip"><span class="value" id="stat-interns">0</span><span class="label">Interns Registered</span></div>
+      <div class="stat-chip"><span class="value" id="stat-today">0</span><span class="label">Entries Today</span></div>
+    </div>
+    <div class="card">
+      <div class="table-header">
+        <div class="card-title" style="margin-bottom:0">&#128202; All Progress Records</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input type="text" class="search-box" id="admin-search" placeholder="Search name / task..." oninput="adminRefresh(this.value)" />
+          <button class="btn btn-success btn-sm" onclick="exportToExcel()">&#128202; Export Excel</button>
+          <button class="btn btn-success btn-sm" onclick="downloadEntriesCSV()">&#128193; Export CSV</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAllEntries()">Clear All</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Date</th><th>Intern</th><th>Dept.</th><th>Project</th><th>Hours</th>
+              <th>Tasks Completed</th><th>Challenges</th><th>Tomorrow Plan</th><th>Del</th>
+            </tr>
+          </thead>
+          <tbody id="admin-records-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div class="card-title" style="margin-bottom:0">&#10133; Add New Intern</div>
+      </div>
+      <form id="admin-add-intern-form" onsubmit="adminAddIntern(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="new-intern-name" placeholder="e.g. Jane Smith" required />
+          </div>
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" id="new-intern-email" placeholder="e.g. jane@company.com" required />
+          </div>
+          <div class="form-group">
+            <label>Department</label>
+            <select id="new-intern-dept">
+              <option value="">-- Select --</option>
+              <option>Engineering</option><option>Design</option><option>Marketing</option>
+              <option>Sales</option><option>HR</option><option>Finance</option>
+              <option>Operations</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Auto-generated PIN</label>
+            <input type="text" id="new-intern-pin" placeholder="Will be auto-generated" readonly style="background:#f8f9fb;color:#666" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">&#10003; Create Intern Account</button>
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('admin-add-intern-form').reset();document.getElementById('new-intern-pin').value=''">Clear</button>
+        </div>
+      </form>
+      <hr class="sep" />
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div class="card-title" style="margin-bottom:0">&#128101; Registered Interns</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-success btn-sm" onclick="downloadUsersCSV()">&#11123; Download CSV</button>
+          <label class="btn btn-primary btn-sm" style="cursor:pointer;margin:0">
+            &#11121; Upload CSV
+            <input type="file" id="csv-upload" accept=".csv" style="display:none" onchange="uploadUsersCSV(event)" />
+          </label>
+          <button class="btn btn-success btn-sm" onclick="downloadEntriesCSV()">&#128202; Export Entries CSV</button>
+        </div>
+      </div>
+      <div id="user-list-wrap"></div>
+      <hr class="sep" />
+      <div class="card-title" style="margin-bottom:14px">&#128273; Change Admin Password</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div class="form-group" style="flex:1;min-width:170px">
+          <label>Current Password</label>
+          <input type="password" id="curr-pass" placeholder="Current password" />
+        </div>
+        <div class="form-group" style="flex:1;min-width:170px">
+          <label>New Password</label>
+          <input type="password" id="new-pass" placeholder="New password (min 6 chars)" />
+        </div>
+        <button class="btn btn-primary" style="height:42px" onclick="changeAdminPass()">Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* STORAGE - Server-side CSV storage via API */
+const API_BASE = './api/';
+const SESSION_KEY = 'ipt_session';
+
+// Cache for synchronous access
+var usersCache = [];
+var entriesCache = [];
+var dataLoaded = false;
+
+// Load data from server
+async function loadUsersFromServer() {
+  try {
+    const response = await fetch(API_BASE + 'load-users');
+    if (response.ok) {
+      usersCache = await response.json();
+    }
+  } catch(e) {
+    console.error('Failed to load users:', e);
+  }
+  return usersCache;
+}
+
+async function loadEntriesFromServer() {
+  try {
+    const response = await fetch(API_BASE + 'load-entries');
+    if (response.ok) {
+      entriesCache = await response.json();
+    }
+  } catch(e) {
+    console.error('Failed to load entries:', e);
+  }
+  return entriesCache;
+}
+
+// Save data to server (async, non-blocking)
+async function saveUsersToServer(users) {
+  try {
+    const response = await fetch(API_BASE + 'save-users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ users: users })
+    });
+    if (!response.ok) throw new Error('Save failed');
+    console.log('✓ Users saved to server');
+  } catch(e) {
+    console.error('✗ Failed to save users:', e);
+    showToast('Warning: Could not save to server', 'error');
+  }
+}
+
+async function saveEntriesToServer(entries) {
+  try {
+    const response = await fetch(API_BASE + 'save-entries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries: entries })
+    });
+    if (!response.ok) throw new Error('Save failed');
+    console.log('✓ Entries saved to server');
+  } catch(e) {
+    console.error('✗ Failed to save entries:', e);
+    showToast('Warning: Could not save to server', 'error');
+  }
+}
+
+// Synchronous wrappers for existing code
+const loadUsers = () => usersCache;
+const saveUsers = (users) => { usersCache = users; saveUsersToServer(users); };
+const loadEntries = () => entriesCache;
+const saveEntries = (entries) => { entriesCache = entries; saveEntriesToServer(entries); };
+
+// Session management with timeout (30 minutes)
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+const getSession = () => { 
+  try { 
+    var session = JSON.parse(sessionStorage.getItem(SESSION_KEY)); 
+    if (!session) return null;
+    
+    // Check session timeout
+    if (session.timestamp && (Date.now() - session.timestamp > SESSION_TIMEOUT)) {
+      console.log('Session expired');
+      clearSession();
+      showToast('Session expired. Please login again.', 'error');
+      showScreen('login');
+      return null;
+    }
+    
+    return session;
+  } catch(e) { 
+    return null; 
+  } 
+};
+
+const setSession = s  => {
+  s.timestamp = Date.now(); // Update timestamp
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
+};
+
+const refreshSession = () => {
+  var session = getSession();
+  if (session) {
+    session.timestamp = Date.now();
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  }
+};
+
+const clearSession  = () => sessionStorage.removeItem(SESSION_KEY);
+
+// Auto-refresh session on user activity
+var activityTimer;
+function resetActivityTimer() {
+  clearTimeout(activityTimer);
+  refreshSession();
+  activityTimer = setTimeout(function() {
+    var session = getSession();
+    if (session) {
+      showToast('Your session will expire due to inactivity', 'error');
+    }
+  }, SESSION_TIMEOUT - 60000); // Warn 1 minute before timeout
+}
+
+// Listen for user activity
+['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(function(event) {
+  document.addEventListener(event, resetActivityTimer, true);
+});
+
+/* HELPERS */
+const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const today   = () => new Date().toISOString().slice(0,10);
+const fmtDate = iso => { if (!iso) return ''; var p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+const esc     = s   => { var el=document.createElement('div'); el.textContent=s||''; return el.innerHTML; };
+
+function showToast(msg, type) {
+  type = type || 'success';
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  clearTimeout(t._t);
+  t._t = setTimeout(function(){ t.classList.remove('show'); }, 3200);
+}
+
+/* ROUTING */
+function showScreen(name) {
+  ['login','intern','admin'].forEach(function(s){
+    document.getElementById('screen-'+s).style.display = s===name ? '' : 'none';
+  });
+}
+function switchTab(name) {
+  document.querySelectorAll('.login-tab').forEach(function(t,i){
+    t.classList.toggle('active', ['login','admin'][i]===name);
+  });
+  document.querySelectorAll('.login-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+/* AUTH */
+async function handleLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var pin   = document.getElementById('login-pin').value.trim();
+  if (!email || !pin) { showToast('Please enter your email and PIN','error'); return; }
+  
+  // Use auth endpoint for secure login
+  try {
+    const response = await fetch(API_BASE + 'auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'intern', email: email, pin: pin })
+    });
+    const result = await response.json();
+    
+    if (result.success) {
+      setSession({ 
+        role: 'intern', 
+        userId: result.userId, 
+        name: result.name, 
+        department: result.department || '',
+        timestamp: Date.now()
+      });
+      var user = loadUsers().find(function(u){ return u.id === result.userId; });
+      if (user) loadInternDashboard(user);
+    } else {
+      showToast(result.error || 'Login failed', 'error');
+    }
+  } catch(e) {
+    console.error('Login error:', e);
+    showToast('Login failed. Please try again.', 'error');
+  }
+}
+
+function adminAddIntern(e) {
+  e.preventDefault();
+  var name  = document.getElementById('new-intern-name').value.trim();
+  var email = document.getElementById('new-intern-email').value.trim();
+  var dept  = document.getElementById('new-intern-dept').value;
+  if (!name || !email) { showToast('Name and email are required','error'); return; }
+  var users = loadUsers();
+  if (users.find(function(u){ return u.name.toLowerCase()===name.toLowerCase(); })) {
+    showToast('An intern with this name already exists','error'); return;
+  }
+  if (users.find(function(u){ return u.email && u.email.toLowerCase()===email.toLowerCase(); })) {
+    showToast('This email is already registered','error'); return;
+  }
+  var pin = Math.floor(1000 + Math.random() * 9000).toString();
+  users.push({ id:uid(), name:name, email:email, department:dept, pin:pin });
+  saveUsers(users);
+  document.getElementById('new-intern-pin').value = pin;
+  showToast('Intern account created! PIN: ' + pin);
+  var msg = 'Account Created Successfully!\n\nName: '+name+'\nEmail: '+email+'\nDepartment: '+(dept||'Not specified')+'\nPIN: '+pin+'\n\nPlease send these credentials to the intern\'s email.\n\nIMPORTANT: Copy the PIN now, it won\'t be shown again.';
+  alert(msg);
+  renderUserList();
+  adminRefresh(document.getElementById('admin-search').value);
+  document.getElementById('admin-add-intern-form').reset();
+  document.getElementById('new-intern-pin').value = '';
+}
+
+async function handleAdminLogin() {
+  var pass = document.getElementById('admin-pass').value;
+  if (!pass) { showToast('Enter the admin password','error'); return; }
+  
+  // Use auth endpoint for secure login
+  try {
+    const response = await fetch(API_BASE + 'auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'admin', password: pass })
+    });
+    const result = await response.json();
+    
+    if (result.success) {
+      setSession({ role: 'admin', timestamp: Date.now() });
+      if (result.upgraded || result.first_time) {
+        showToast('Security: Password has been encrypted');
+      }
+      loadAdminDashboard();
+    } else {
+      showToast(result.error || 'Incorrect admin password', 'error');
+    }
+  } catch(e) {
+    console.error('Admin login error:', e);
+    showToast('Login failed. Please try again.', 'error');
+  }
+}
+
+function handleLogout() {
+  clearSession();
+  document.getElementById('login-pin').value='';
+  document.getElementById('admin-pass').value='';
+  showScreen('login');
+  showToast('Logged out successfully');
+}
+
+/* INTERN DASHBOARD */
+function loadInternDashboard(user) {
+  showScreen('intern');
+  document.getElementById('intern-user-badge').textContent = user.name;
+  document.getElementById('intern-header-sub').textContent = fmtDate(today()) + (user.department ? ' \u2014 '+user.department : '');
+  var entries    = loadEntries();
+  var todayEntry = entries.find(function(e){ return e.userId===user.id && e.date===today(); });
+  if (todayEntry) { renderSubmittedBanner(todayEntry); } else { renderInternForm(user); }
+  renderInternHistory(user.id, entries);
+}
+
+function renderSubmittedBanner(entry) {
+  document.getElementById('today-card-title').textContent = "Today's Progress \u2014 Submitted \u2713";
+  var html = '<div class="submitted-banner">'
+    +'<div class="check-icon">&#10003;&#65038;</div>'
+    +'<h3>Progress submitted for today!</h3>'
+    +'<p>You have already logged your daily progress for <strong>'+esc(fmtDate(today()))+'</strong>. Great work &mdash; see you tomorrow! &#128640;</p>'
+    +'<div class="submitted-entry">'
+    +'<div class="entry-row"><span class="key">Project</span><span class="val">'+esc(entry.projectName||'\u2014')+'</span></div>'
+    +'<div class="entry-row"><span class="key">Hours Worked</span><span class="val">'+esc(String(entry.hours))+' hrs</span></div>'
+    +'<div class="entry-row"><span class="key">Tasks Completed</span><span class="val">'+esc(entry.tasks)+'</span></div>';
+  if (entry.challenges) html += '<div class="entry-row"><span class="key">Challenges</span><span class="val">'+esc(entry.challenges)+'</span></div>';
+  if (entry.plan)       html += '<div class="entry-row"><span class="key">Tomorrow\'s Plan</span><span class="val">'+esc(entry.plan)+'</span></div>';
+  html += '</div></div>';
+  document.getElementById('today-content').innerHTML = html;
+}
+
+function renderInternForm(user) {
+  document.getElementById('today-card-title').textContent = "Add Today's Progress";
+  document.getElementById('today-content').innerHTML =
+    '<form id="intern-form" onsubmit="handleInternSubmit(event)">'
+    +'<div class="form-grid">'
+    +'<div class="form-group"><label>Your Name</label><input type="text" value="'+esc(user.name)+'" readonly /></div>'
+    +'<div class="form-group"><label>Date</label><input type="date" value="'+today()+'" readonly /></div>'
+    +'<div class="form-group"><label>Department</label><input type="text" value="'+esc(user.department||'\u2014')+'" readonly /></div>'
+    +'<div class="form-group"><label>Hours Worked *</label><input type="number" id="f-hours" min="0.5" max="24" step="0.5" placeholder="e.g. 8" required /></div>'
+    +'<div class="form-group full-width"><label>Tasks Completed Today *</label><textarea id="f-tasks" placeholder="Describe the tasks you completed today\u2026" required></textarea></div>'
+    +'<div class="form-group full-width"><label>Challenges / Blockers</label><textarea id="f-challenges" placeholder="Any blockers or difficulties you faced\u2026"></textarea></div>'
+    +'<div class="form-group full-width"><label>Plan for Tomorrow</label><textarea id="f-plan" placeholder="What do you plan to work on tomorrow\u2026"></textarea></div>'
+    +'<div class="form-group"><label>Overall Progress</label>'
+    +'<select id="f-progress"><option value="High">High \u2014 On track / exceeded goals</option><option value="Medium" selected>Medium \u2014 Mostly on track</option><option value="Low">Low \u2014 Behind / need support</option></select></div>'
+    +'<div class="form-group"><label>Mood / Energy</label>'
+    +'<select id="f-mood"><option>&#128516; Great</option><option selected>&#128578; Good</option><option>&#128528; Okay</option><option>&#128531; Tired</option><option>&#128532; Struggling</option></select></div>'
+    +'</div>'
+    +'<div class="form-actions"><button type="submit" class="btn btn-primary">&#10003; Submit Today\'s Progress</button></div>'
+    +'</form>';
+}
+
+function handleInternSubmit(e) {
+  e.preventDefault();
+  var session = getSession();
+  if (!session || session.role!=='intern') { handleLogout(); return; }
+  var projectName = document.getElementById('f-project').value.trim();
+  var hours = parseFloat(document.getElementById('f-hours').value);
+  var tasks = document.getElementById('f-tasks').value.trim();
+  if (!projectName) { showToast('Please enter project name','error'); return; }
+  if (isNaN(hours)||hours<=0||hours>24) { showToast('Hours must be between 0.5 and 24','error'); return; }
+  if (!tasks) { showToast('Please describe your tasks','error'); return; }
+  var entries = loadEntries();
+  if (entries.find(function(en){ return en.userId===session.userId && en.date===today(); })) {
+    showToast('You have already submitted your progress for today!','error');
+    var user = loadUsers().find(function(u){ return u.id===session.userId; });
+    if (user) loadInternDashboard(user);
+    return;
+  }
+  var entry = {
+    id: uid(), userId: session.userId, name: session.name,
+    department: session.department||'', date: today(), projectName: projectName, hours: hours, tasks: tasks,
+    challenges: document.getElementById('f-challenges').value.trim(),
+    plan:       document.getElementById('f-plan').value.trim()
+  };
+  entries.push(entry);
+  saveEntries(entries);
+  showToast('Progress submitted successfully!');
+  renderSubmittedBanner(entry);
+  renderInternHistory(session.userId, loadEntries());
+}
+
+function renderInternHistory(userId, entries) {
+  var tbody = document.getElementById('intern-history-body');
+  if (!tbody) return;
+  var mine = (entries||loadEntries()).filter(function(e){ return e.userId===userId; })
+    .sort(function(a,b){ return b.date.localeCompare(a.date); });
+  if (mine.length===0) {
+    tbody.innerHTML='<tr><td colspan="7" class="no-data">No history yet. Submit your first entry above!</td></tr>'; return;
+  }
+  tbody.innerHTML = mine.map(function(e,i){
+    return '<tr><td>'+(i+1)+'</td>'
+      +'<td style="white-space:nowrap"><strong>'+esc(fmtDate(e.date))+'</strong></td>'
+      +'<td>'+esc(e.projectName||'\u2014')+'</td>'
+      +'<td style="text-align:center">'+esc(String(e.hours))+'</td>'
+      +'<td><span class="td-truncate" title="'+esc(e.tasks)+'">'+esc(e.tasks)+'</span></td>'
+      +'<td><span class="td-truncate" title="'+esc(e.challenges||'')+'">'+esc(e.challenges||'\u2014')+'</span></td>'
+      +'<td><span class="td-truncate" title="'+esc(e.plan||'')+'">'+esc(e.plan||'\u2014')+'</span></td></tr>';
+  }).join('');
+}
+
+/* ADMIN DASHBOARD */
+function loadAdminDashboard() {
+  showScreen('admin');
+  adminRefresh('');
+  renderUserList();
+}
+
+function adminRefresh(q) {
+  q = q||'';
+  var entries = loadEntries();
+  var users   = loadUsers();
+  document.getElementById('stat-total').textContent   = entries.length;
+  document.getElementById('stat-hours').textContent   = entries.reduce(function(s,e){ return s+(parseFloat(e.hours)||0); },0).toFixed(1);
+  document.getElementById('stat-interns').textContent = users.length;
+  document.getElementById('stat-today').textContent   = entries.filter(function(e){ return e.date===today(); }).length;
+  var f = q.toLowerCase().trim();
+  var filtered = f ? entries.filter(function(e){
+    return e.name.toLowerCase().includes(f)||e.tasks.toLowerCase().includes(f)||(e.department||'').toLowerCase().includes(f);
+  }) : entries;
+  var sorted = filtered.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+  var tbody = document.getElementById('admin-records-body');
+  if (sorted.length===0) { tbody.innerHTML='<tr><td colspan="11" class="no-data">No entries found.</td></tr>'; return; }
+  tbody.innerHTML = sorted.map(function(e,i){
+    var badge=e.progress==='High'?'badge-high':e.progress==='Medium'?'badge-medium':'badge-low';
+    return '<tr><td>'+(i+1)+'</td>'
+      +'<td style="white-space:nowrap">'+esc(fmtDate(e.date))+'</td>'
+      +'<td><strong>'+esc(e.name)+'</strong></td>'
+      +'<td>'+esc(e.department||'\u2014')+'</td>'
+      +'<td style="text-align:center">'+esc(String(e.hours))+'</td>'
+      +'<td><span class="td-truncate" title="'+esc(e.tasks)+'">'+esc(e.tasks)+'</span></td>'
+      +'<td><span class="td-truncate" title="'+esc(e.challenges||'')+'">'+esc(e.challenges||'\u2014')+'</span></td>'
+      +'<td><span class="td-truncate" title="'+esc(e.plan||'')+'">'+esc(e.plan||'\u2014')+'</span></td>'
+      +'<td><span class="badge '+badge+'">'+esc(e.progress)+'</span></td>'
+      +'<td>'+esc(e.mood)+'</td>'
+      +'<td><button class="action-btn" onclick="adminDeleteEntry(\''+e.id+'\')">&#128465;</button></td></tr>';
+  }).join('');
+}
+
+function adminDeleteEntry(id) {
+  if (!confirm('Delete this entry?')) return;
+  saveEntries(loadEntries().filter(function(e){ return e.id!==id; }));
+  adminRefresh(document.getElementById('admin-search').value);
+  showToast('Entry deleted');
+}
+
+function clearAllEntries() {
+  var entries = loadEntries();
+  if (entries.length===0) { showToast('No entries to clear','error'); return; }
+  if (!confirm('Delete ALL '+entries.length+' entries? This cannot be undone.')) return;
+  saveEntries([]);
+  adminRefresh('');
+  showToast('All entries cleared');
+}
+
+function renderUserList() {
+  var users = loadUsers();
+  var wrap  = document.getElementById('user-list-wrap');
+  if (users.length===0) {
+    wrap.innerHTML='<div class="table-wrap"><table><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Department</th><th>PIN</th><th>Actions</th></tr></thead>'
+      +'<tbody><tr><td colspan="6" class="no-data">No registered interns yet. Use the form above to add new interns.</td></tr></tbody></table></div>';
+    return;
+  }
+  var rows = users.map(function(u, i){
+    return '<tr>'
+      +'<td>'+(i+1)+'</td>'
+      +'<td><strong>'+esc(u.name)+'</strong></td>'
+      +'<td>'+esc(u.email||'—')+'</td>'
+      +'<td>'+esc(u.department||'—')+'</td>'
+      +'<td><span style="background:#e3f2fd;padding:4px 10px;border-radius:6px;font-family:monospace;font-weight:700;color:#1565c0">'+esc(u.pin||'****')+'</span></td>'
+      +'<td><button class="action-btn" title="Delete intern" onclick="adminDeleteUser(\''+u.id+'\')">&#128465;</button></td>'
+      +'</tr>';
+  }).join('');
+  wrap.innerHTML = '<div class="table-wrap"><table><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Department</th><th>PIN</th><th>Actions</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div>';
+}
+
+function adminDeleteUser(id) {
+  var users = loadUsers();
+  var user  = users.find(function(u){ return u.id===id; });
+  if (!user) return;
+  if (!confirm('Remove "'+user.name+'"?\nTheir entries remain but they cannot login anymore.')) return;
+  saveUsers(users.filter(function(u){ return u.id!==id; }));
+  renderUserList();
+  adminRefresh(document.getElementById('admin-search').value);
+  showToast('User "'+user.name+'" removed');
+}
+
+async function changeAdminPass() {
+  var curr = document.getElementById('curr-pass').value;
+  var next = document.getElementById('new-pass').value;
+  
+  if (!curr || !next) { 
+    showToast('Fill in both fields','error'); 
+    return; 
+  }
+  
+  if (next.length < 8) { 
+    showToast('New password must be at least 8 characters','error'); 
+    return; 
+  }
+  
+  // Use server-side verification
+  try {
+    const response = await fetch(API_BASE + 'change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        currentPassword: curr, 
+        newPassword: next 
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      document.getElementById('curr-pass').value = '';
+      document.getElementById('new-pass').value = '';
+      showToast('Password updated successfully!');
+      
+      // Force logout after password change for security
+      setTimeout(function() {
+        showToast('Please login with your new password', 'error');
+        handleLogout();
+      }, 2000);
+    } else {
+      showToast(result.error || 'Password change failed', 'error');
+    }
+  } catch(e) {
+    console.error('Password change error:', e);
+    showToast('Password change failed. Please try again.', 'error');
+  }
+}
+
+/* EXPORT TO EXCEL */
+function exportToExcel() {
+  var entries = loadEntries();
+  if (entries.length===0) { showToast('No data to export','error'); return; }
+  var rows = entries.slice().sort(function(a,b){ return b.date.localeCompare(a.date); }).map(function(e,i){
+    var o = {}; o['#']=i+1; o['Date']=fmtDate(e.date); o['Intern Name']=e.name;
+    o['Department']=e.department||''; o['Project']=e.projectName||''; o['Hours Worked']=e.hours; o['Tasks Completed']=e.tasks;
+    o['Challenges']=e.challenges||''; o["Tomorrow's Plan"]=e.plan||''; return o;
+  });
+  var ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:4},{wch:12},{wch:22},{wch:14},{wch:20},{wch:12},{wch:42},{wch:36},{wch:36}];
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Daily Progress');
+  var names = [];
+  entries.forEach(function(e){ if (names.indexOf(e.name.trim())===-1) names.push(e.name.trim()); });
+  var summary = names.map(function(name){
+    var ie = entries.filter(function(e){ return e.name.trim()===name; });
+    var total = ie.reduce(function(s,e){ return s+(parseFloat(e.hours)||0); },0);
+    var o={}; o['Intern Name']=name; o['Total Entries']=ie.length; o['Total Hours']=total;
+    o['Avg Hours/Day']=(total/ie.length).toFixed(1);
+    return o;
+  });
+  var ws2 = XLSX.utils.json_to_sheet(summary);
+  ws2['!cols']=[{wch:22},{wch:14},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+  XLSX.writeFile(wb, 'Intern_Progress_'+today()+'.xlsx');
+  showToast('Exported: Intern_Progress_'+today()+'.xlsx');
+}
+
+/* CSV UTILITIES */
+function downloadUsersCSV() {
+  var users = loadUsers();
+  if (users.length === 0) { showToast('No users to export','error'); return; }
+  var csv = 'ID,Name,Email,Department,PIN\n';
+  users.forEach(function(u) {
+    csv += [u.id, u.name, u.email||'', u.department||'', u.pin].map(function(v){
+      return '"'+String(v).replace(/"/g,'""')+'"';
+    }).join(',') + '\n';
+  });
+  downloadCSVFile(csv, 'Interns_'+today()+'.csv');
+  showToast('Users CSV downloaded');
+}
+
+function downloadEntriesCSV() {
+  var entries = loadEntries();
+  if (entries.length === 0) { showToast('No entries to export','error'); return; }
+  var csv = 'ID,User ID,Name,Email,Department,Date,Project,Hours,Tasks,Challenges,Plan\n';
+  entries.forEach(function(e) {
+    var user = loadUsers().find(function(u){ return u.id===e.userId; });
+    csv += [e.id, e.userId, e.name, user?user.email:'', e.department||'', e.date, e.projectName||'', e.hours, 
+      e.tasks||'', e.challenges||'', e.plan||''].map(function(v){
+      return '"'+String(v).replace(/"/g,'""')+'"';
+    }).join(',') + '\n';
+  });
+  downloadCSVFile(csv, 'Entries_'+today()+'.csv');
+  showToast('Entries CSV downloaded');
+}
+
+function downloadCSVFile(csv, filename) {
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var link = document.createElement('a');
+  if (link.download !== undefined) {
+    var url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}
+
+function uploadUsersCSV(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var csv = e.target.result;
+      var lines = csv.split('\n').filter(function(l){ return l.trim(); });
+      if (lines.length < 2) { showToast('CSV file is empty','error'); return; }
+      var headers = lines[0].split(',').map(function(h){ return h.trim().replace(/^"|"$/g,''); });
+      var idIdx = headers.indexOf('ID');
+      var nameIdx = headers.indexOf('Name');
+      var emailIdx = headers.indexOf('Email');
+      var deptIdx = headers.indexOf('Department');
+      var pinIdx = headers.indexOf('PIN');
+      if (nameIdx===-1 || emailIdx===-1 || pinIdx===-1) {
+        showToast('CSV must have Name, Email, and PIN columns','error'); return;
+      }
+      var users = loadUsers();
+      var imported = 0;
+      var updated = 0;
+      for (var i=1; i<lines.length; i++) {
+        var cols = parseCSVLine(lines[i]);
+        if (cols.length < 3) continue;
+        var id = idIdx>=0 && cols[idIdx] ? cols[idIdx] : uid();
+        var name = cols[nameIdx];
+        var email = cols[emailIdx];
+        var dept = deptIdx>=0 ? cols[deptIdx] : '';
+        var pin = cols[pinIdx];
+        if (!name || !email || !pin) continue;
+        var existing = users.find(function(u){ return u.email.toLowerCase()===email.toLowerCase(); });
+        if (existing) {
+          existing.name = name;
+          existing.department = dept;
+          existing.pin = pin;
+          updated++;
+        } else {
+          users.push({ id:id, name:name, email:email, department:dept, pin:pin });
+          imported++;
+        }
+      }
+      saveUsers(users);
+      renderUserList();
+      adminRefresh('');
+      showToast('CSV imported: '+imported+' new, '+updated+' updated');
+      document.getElementById('csv-upload').value = '';
+    } catch(err) {
+      showToast('Error parsing CSV: '+err.message,'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+  var result = [];
+  var current = '';
+  var inQuotes = false;
+  for (var i=0; i<line.length; i++) {
+    var char = line[i];
+    if (char==='"') {
+      if (inQuotes && line[i+1]==='"') { current += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+    } else if (char===',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+/* ENTER KEY on login panels */
+document.addEventListener('keydown', function(e) {
+  if (e.key!=='Enter') return;
+  var active = document.querySelector('.login-panel.active');
+  if (!active) return;
+  if (active.id==='panel-login')    handleLogin();
+  if (active.id==='panel-admin')    handleAdminLogin();
+});
+
+/* INIT - Load data from server first */
+(async function(){
+  // Show loading indicator
+  document.body.style.opacity = '0.6';
+  document.body.style.pointerEvents = 'none';
+  
+  // Load all data from server
+  await Promise.all([
+    loadUsersFromServer(),
+    loadEntriesFromServer()
+  ]);
+  
+  dataLoaded = true;
+  document.body.style.opacity = '1';
+  document.body.style.pointerEvents = 'auto';
+  
+  console.log('✓ Data loaded from server');
+  console.log('  - Users:', usersCache.length);
+  console.log('  - Entries:', entriesCache.length);
+  console.log('  - CSV Location: /data/users.csv, /data/entries.csv');
+  
+  var session = getSession();
+  if (!session) { showScreen('login'); return; }
+  if (session.role==='admin') {
+    loadAdminDashboard();
+  } else if (session.role==='intern') {
+    var user = loadUsers().find(function(u){ return u.id===session.userId; });
+    if (user) { loadInternDashboard(user); } else { clearSession(); showScreen('login'); }
+  } else { showScreen('login'); }
+})();
+</script>
+</body>
+</html>
